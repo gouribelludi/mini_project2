@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { submitPainAssessment } from '../services/api';
 
 const PainAssessmentPage = () => {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ const PainAssessmentPage = () => {
   const [sensation, setSensation] = useState('');
   const [timing, setTiming] = useState('');
   const [trigger, setTrigger] = useState('');
+  const [details, setDetails] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const bodyParts = ['Head', 'Neck', 'Shoulders', 'Chest', 'Upper Back', 'Lower Back', 'Hips', 'Arms', 'Elbows', 'Wrists', 'Hands', 'Knees', 'Ankles', 'Feet'];
 
@@ -24,6 +27,27 @@ const PainAssessmentPage = () => {
   };
   
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const assessmentData = {
+        bodyPart: selectedPart,
+        painLevel: parseInt(painLevel),
+        sensation,
+        timing,
+        details
+      };
+      const response = await submitPainAssessment(assessmentData);
+      navigate('/suggestion', { state: { carePlan: response } });
+    } catch (error) {
+      console.error(error);
+      alert("Failed to connect to the backend server. Using offline recommendations instead.");
+      navigate('/suggestion');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -166,6 +190,8 @@ const PainAssessmentPage = () => {
               <textarea 
                 placeholder="e.g. It gets better when I use a heat pack..." 
                 style={styles.textarea}
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
               ></textarea>
             </motion.div>
           )}
@@ -173,13 +199,18 @@ const PainAssessmentPage = () => {
 
         <div style={styles.footer}>
           {step > 1 && (
-            <button onClick={prevStep} style={styles.backBtn}>Back</button>
+            <button onClick={prevStep} style={styles.backBtn} disabled={loading}>Back</button>
           )}
           <button 
-            onClick={() => step === 3 ? navigate('/suggestion') : nextStep()} 
-            style={styles.submitBtn}
+            onClick={() => step === 3 ? handleSubmit() : nextStep()} 
+            style={{
+              ...styles.submitBtn,
+              opacity: loading ? 0.7 : 1,
+              pointerEvents: loading ? 'none' : 'auto'
+            }}
+            disabled={loading}
           >
-            {step === 3 ? 'Get AI Results' : 'Next Step'}
+            {loading ? 'Analyzing...' : step === 3 ? 'Get AI Results' : 'Next Step'}
           </button>
         </div>
       </motion.div>

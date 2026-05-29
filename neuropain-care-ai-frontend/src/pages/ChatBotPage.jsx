@@ -1,24 +1,34 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { sendChatMessage } from '../services/api';
 
 const ChatBotPage = () => {
   const [messages, setMessages] = useState([
     { role: 'ai', text: 'Hello John! I am your NeuroPain Assistant. How are you feeling today?' }
   ]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages([...messages, { role: 'user', text: input }]);
-    setInput('');
+  const handleSend = async () => {
+    if (!input.trim() || loading) return;
+    const userMessage = input.trim();
     
-    // Simulate AI Response
-    setTimeout(() => {
+    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setInput('');
+    setLoading(true);
+    
+    try {
+      const response = await sendChatMessage(userMessage);
+      setMessages(prev => [...prev, { role: 'ai', text: response.response }]);
+    } catch (error) {
+      console.error(error);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: 'Based on your description, this sounds like a flare-up. Have you tried the breathing exercises in your care plan?' 
+        text: "I'm sorry, I couldn't connect to the AI assistant. Please make sure the Java backend is running." 
       }]);
-    }, 1000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,19 +69,46 @@ const ChatBotPage = () => {
                 {msg.text}
               </motion.div>
             ))}
+            {loading && (
+              <motion.div 
+                key="thinking"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  ...styles.message,
+                  alignSelf: 'flex-start',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: '#94a3b8',
+                  fontStyle: 'italic'
+                }}
+              >
+                Assistant is thinking...
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
 
         <div style={styles.inputArea}>
           <input 
             type="text" 
-            placeholder="Type your symptoms or questions..." 
+            placeholder={loading ? "Assistant is thinking..." : "Type your symptoms or questions..."}
             style={styles.input}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            disabled={loading}
           />
-          <button onClick={handleSend} style={styles.sendBtn}>Send</button>
+          <button 
+            onClick={handleSend} 
+            style={{
+              ...styles.sendBtn,
+              opacity: loading ? 0.7 : 1,
+              pointerEvents: loading ? 'none' : 'auto'
+            }}
+            disabled={loading}
+          >
+            {loading ? '...' : 'Send'}
+          </button>
         </div>
       </div>
     </div>

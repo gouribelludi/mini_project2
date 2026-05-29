@@ -1,10 +1,14 @@
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const SuggestionPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const recommendations = [
+  // Get recommendations from location state (passed by PainAssessmentPage), or fall back to default template
+  const backendRecommendations = location.state?.carePlan?.recommendations;
+
+  const defaultRecommendations = [
     {
       title: 'Immediate Relief',
       tips: [
@@ -24,6 +28,8 @@ const SuggestionPage = () => {
       color: '#818cf8'
     }
   ];
+
+  const recommendations = backendRecommendations || defaultRecommendations;
 
   return (
     <div style={styles.container}>

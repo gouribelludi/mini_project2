@@ -1,14 +1,33 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import illustration from '../assets/images/login-illustration.png';
+import { loginUser } from '../services/authService';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Simulate login and navigate to options
-    navigate('/options');
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await loginUser(email, password);
+      if (res.status === 'success') {
+        navigate('/options');
+      } else {
+        setError(res.message || 'Login failed.');
+      }
+    } catch (err) {
+      setError('Connection to server failed. Please ensure the backend is running.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,14 +43,30 @@ const LoginPage = () => {
 
         <h1 style={styles.title}>NEUROPAIN CARE AI</h1>
         
+        {error && <div style={styles.errorText}>{error}</div>}
+        
         <form onSubmit={handleLogin} style={styles.form}>
           <div style={styles.inputGroup}>
             <label style={styles.label}>Email</label>
-            <input type="email" placeholder="Enter your email" style={styles.input} required />
+            <input 
+              type="email" 
+              placeholder="Enter your email" 
+              style={styles.input} 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
           </div>
           <div style={styles.inputGroup}>
             <label style={styles.label}>Password</label>
-            <input type="password" placeholder="Enter your password" style={styles.input} required />
+            <input 
+              type="password" 
+              placeholder="Enter your password" 
+              style={styles.input} 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
           </div>
           
           <div style={styles.forgotContainer}>
@@ -43,8 +78,9 @@ const LoginPage = () => {
             whileTap={{ scale: 0.98 }}
             type="submit"
             style={styles.loginButton}
+            disabled={loading}
           >
-            LOGIN
+            {loading ? 'LOGGING IN...' : 'LOGIN'}
           </motion.button>
         </form>
 
@@ -55,6 +91,7 @@ const LoginPage = () => {
     </div>
   );
 };
+
 
 const styles = {
   container: {
@@ -94,6 +131,16 @@ const styles = {
     color: '#f8fafc',
     letterSpacing: '0.1em',
     marginBottom: '2rem'
+  },
+  errorText: {
+    color: '#ef4444',
+    background: 'rgba(239, 68, 68, 0.1)',
+    padding: '0.8rem',
+    borderRadius: '12px',
+    marginBottom: '1.5rem',
+    fontSize: '0.9rem',
+    border: '1px solid rgba(239, 68, 68, 0.2)',
+    textAlign: 'center'
   },
   form: {
     display: 'flex',

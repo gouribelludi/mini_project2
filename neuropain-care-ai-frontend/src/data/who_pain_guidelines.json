@@ -1,0 +1,84 @@
+{
+  "Head": {
+    "recommended_treatments": [
+      "Rest in a quiet, dark room to reduce sensory stimulation.",
+      "Apply a cool cloth or ice pack to the forehead or temples.",
+      "Stay hydrated (aim for 2.0L - 2.5L of water daily).",
+      "Perform gentle neck range-of-motion stretching exercises.",
+      "Incorporate deep breathing techniques and progressive muscle relaxation."
+    ],
+    "avoid": [
+      "Excessive screen time (mobile, laptop, TV) during pain flares.",
+      "Caffeine overuse or sudden caffeine withdrawal."
+    ],
+    "red_flags": [
+      "Sudden, extremely severe headache (thunderclap headache).",
+      "Headaches accompanied by high fever, stiff neck, confusion, or seizures.",
+      "Difficulty speaking, numbness, or weakness on one side of the face/body."
+    ]
+  },
+  "Neck": {
+    "recommended_treatments": [
+      "Apply a warm compress or heating pad for 15-20 minutes to relax stiff muscles.",
+      "Perform slow, gentle head tilts and side-to-side turns.",
+      "Optimize workstation ergonomics (screen at eye level, sit back in chair).",
+      "Use a supportive, contouring neck pillow during sleep."
+    ],
+    "avoid": [
+      "Cradling a phone between your shoulder and ear.",
+      "High-impact or jarring activities that strain the neck vertebrae."
+    ],
+    "red_flags": [
+      "Pain radiating down both arms accompanied by weakness or numbness.",
+      "New clumsiness in hands or difficulty walking/maintaining balance."
+    ]
+  },
+  "Shoulders": {
+    "recommended_treatments": [
+      "Use ice therapy for acute flare-ups to reduce active joint inflammation.",
+      "Do gentle pendulum exercises (swinging the arm gently back and forth).",
+      "Maintain a upright posture; pull shoulders back and down throughout the day."
+    ],
+    "avoid": [
+      "Sleeping on the painful side shoulder.",
+      "Heavy overhead lifting or repetitive reaching."
+    ],
+    "red_flags": [
+      "Shoulder pain accompanied by tightness, pressure, or squeezing in the chest.",
+      "Inability to move or lift the arm at all."
+    ]
+  },
+  "Lower Back": {
+    "recommended_treatments": [
+      "Engage in structured low-impact physical exercise (aerobic walking, yoga, stretching) as recommended by the 2023 WHO low back pain guidelines.",
+      "Apply dry heat (heating pad) to soothe muscle spasms and stiffness.",
+      "Incorporate mindfulness-based stress reduction (MBSR) or cognitive behavioral strategies to help manage pain perception.",
+      "Ensure proper lifting technique (bend at the knees, not at the waist)."
+    ],
+    "avoid": [
+      "Prolonged bed rest beyond 48 hours, as active movement improves long-term recovery.",
+      "Slouching or sitting in soft, unsupportive sofas for long durations."
+    ],
+    "red_flags": [
+      "Loss of bowel or bladder control (incontinence) or sudden numbness in the groin/saddle area.",
+      "Back pain accompanied by unexplained weight loss or high fever.",
+      "Severe pain that does not change with position or rest."
+    ]
+  },
+  "Knees": {
+    "recommended_treatments": [
+      "Perform low-impact exercises like swimming, stationary cycling, or water aerobics.",
+      "Apply cold packs to reduce joint swelling after activity.",
+      "Maintain a healthy weight to reduce the mechanical load placed on joint cartilage.",
+      "Wear supportive footwear with cushioned soles."
+    ],
+    "avoid": [
+      "Deep squatting or kneeling on hard surfaces.",
+      "Running on hard asphalt surfaces."
+    ],
+    "red_flags": [
+      "Inability to bear weight on the knee or feeling that the joint is 'giving out'.",
+      "Severe swelling, redness, and heat around the knee joint accompanied by a fever."
+    ]
+  }
+}

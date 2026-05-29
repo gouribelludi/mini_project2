@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { submitPainAssessment } from '../services/api';
 
 const BodyMappingPage = () => {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ const BodyMappingPage = () => {
   const [rotation, setRotation] = useState(0); 
   const iframeRef = useRef(null);
   const [apiReady, setApiReady] = useState(false);
-
+const [details, setDetails] = useState('');
   // Selection states for the form
   const [sensation, setSensation] = useState('');
   const [timing, setTiming] = useState('');
@@ -58,6 +59,31 @@ const BodyMappingPage = () => {
     setSelectedPart(part);
     setShowQuestions(true);
   };
+  const handleAnalyzePain = async () => {
+  try {
+    const assessmentData = {
+      bodyPart: selectedPart?.name,
+      painLevel: Number(painLevel),
+      sensation,
+      timing,
+      details
+    };
+
+    console.log("Sending:", assessmentData);
+
+    const carePlan = await submitPainAssessment(assessmentData);
+
+    console.log("AI Response:", carePlan);
+
+    navigate('/suggestion', {
+      state: { carePlan }
+    });
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to generate AI care plan");
+  }
+};
 
   const activeParts = initialParts.map(part => {
     const shift = Math.sin(rotation + part.angle) * part.r;
@@ -176,10 +202,21 @@ const BodyMappingPage = () => {
 
             <div style={styles.questionGroup}>
               <label style={styles.questionLabel}>Any other notes for the AI?</label>
-              <textarea placeholder={`Tell us more in simple words...`} style={styles.textarea}></textarea>
+            <textarea
+  placeholder="Tell us more in simple words..."
+  style={styles.textarea}
+  value={details}
+  onChange={(e) => setDetails(e.target.value)}
+/>
             </div>
 
-            <button style={styles.submitBtn} onClick={() => navigate('/suggestion')}>Analyze My Pain</button>
+         <button
+  style={styles.submitBtn}
+  onClick={handleAnalyzePain}
+>
+  Analyze My Pain
+</button>
+         
           </div>
         </motion.div>
       )}

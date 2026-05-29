@@ -1,7 +1,35 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../services/authService';
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await registerUser(name, email, password);
+      if (res.status === 'success') {
+        navigate('/options');
+      } else {
+        setError(res.message || 'Registration failed.');
+      }
+    } catch (err) {
+      setError('Connection to server failed. Please ensure the backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={styles.container}>
       <motion.div 
@@ -11,22 +39,51 @@ const RegisterPage = () => {
       >
         <h2 style={styles.title}>Join NeuroPain</h2>
         <p style={styles.subtitle}>Start your personalized care journey</p>
+
+        {error && <div style={styles.errorText}>{error}</div>}
         
-        <div style={styles.form}>
+        <form onSubmit={handleRegister} style={styles.form}>
           <div style={styles.inputGroup}>
-            <label>Full Name</label>
-            <input type="text" placeholder="John Doe" style={styles.input} />
+            <label style={styles.label}>Full Name</label>
+            <input 
+              type="text" 
+              placeholder="John Doe" 
+              style={styles.input} 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required 
+            />
           </div>
           <div style={styles.inputGroup}>
-            <label>Email Address</label>
-            <input type="email" placeholder="name@example.com" style={styles.input} />
+            <label style={styles.label}>Email Address</label>
+            <input 
+              type="email" 
+              placeholder="name@example.com" 
+              style={styles.input} 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
           </div>
           <div style={styles.inputGroup}>
-            <label>Password</label>
-            <input type="password" placeholder="••••••••" style={styles.input} />
+            <label style={styles.label}>Password</label>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              style={styles.input} 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
           </div>
-          <button style={styles.button}>Create Account</button>
-        </div>
+          <button 
+            type="submit" 
+            style={styles.button}
+            disabled={loading}
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
+        </form>
 
         <p style={styles.footerText}>
           Already have an account? <Link to="/login" style={styles.link}>Sign in</Link>
@@ -62,6 +119,21 @@ const styles = {
   subtitle: {
     color: '#94a3b8',
     marginBottom: '2rem'
+  },
+  errorText: {
+    color: '#ef4444',
+    background: 'rgba(239, 68, 68, 0.1)',
+    padding: '0.8rem',
+    borderRadius: '12px',
+    marginBottom: '1.5rem',
+    fontSize: '0.9rem',
+    border: '1px solid rgba(239, 68, 68, 0.2)',
+    textAlign: 'center'
+  },
+  label: {
+    color: '#94a3b8',
+    fontSize: '0.875rem',
+    fontWeight: '500'
   },
   form: {
     display: 'flex',
