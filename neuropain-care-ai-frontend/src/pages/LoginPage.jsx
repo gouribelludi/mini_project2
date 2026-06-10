@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import illustration from '../assets/images/login-illustration.png';
-import { loginUser } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/options');
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,7 +24,7 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const res = await loginUser(email, password);
+      const res = await login(email, password);
       if (res.status === 'success') {
         navigate('/options');
       } else {
@@ -29,6 +36,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div style={styles.container}>

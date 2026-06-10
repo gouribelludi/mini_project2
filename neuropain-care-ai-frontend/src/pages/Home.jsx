@@ -35,8 +35,8 @@ const Home = () => {
         >
           <div style={styles.illustrationWrapper}>
             <img 
-              src="https://img.freepik.com/free-vector/human-internal-organ-system_1308-112948.jpg" 
-              alt="Medical AI Illustration" 
+              src={logoImg} 
+              alt="NeuroPain Care AI Logo" 
               style={styles.heroImage}
             />
             <div style={styles.glow}></div>

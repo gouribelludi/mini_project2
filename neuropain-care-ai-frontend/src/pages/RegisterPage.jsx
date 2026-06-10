@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { registerUser } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { register, user } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/options');
+    }
+  }, [user, navigate]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -17,7 +24,7 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      const res = await registerUser(name, email, password);
+      const res = await register(name, email, password);
       if (res.status === 'success') {
         navigate('/options');
       } else {
@@ -29,6 +36,7 @@ const RegisterPage = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div style={styles.container}>

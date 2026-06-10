@@ -6,6 +6,7 @@ import com.neuropain.care.dto.AuthResponse;
 import com.neuropain.care.model.User;
 import com.neuropain.care.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
@@ -17,6 +18,9 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @PostMapping("/register")
     public AuthResponse register(@RequestBody AuthRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -25,7 +29,7 @@ public class AuthController {
 
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword()); // In production, hash this password!
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // Securely hash the password
         user.setName(request.getName());
         userRepository.save(user);
 
@@ -36,7 +40,7 @@ public class AuthController {
     public AuthResponse login(@RequestBody AuthRequest request) {
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
 
-        if (userOpt.isPresent() && userOpt.get().getPassword().equals(request.getPassword())) {
+        if (userOpt.isPresent() && passwordEncoder.matches(request.getPassword(), userOpt.get().getPassword())) {
             User user = userOpt.get();
             return new AuthResponse("success", "Login successful!", user.getEmail(), user.getName());
         }

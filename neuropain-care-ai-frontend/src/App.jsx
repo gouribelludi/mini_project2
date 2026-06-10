@@ -14,35 +14,63 @@ import SuggestionPage from './pages/SuggestionPage';
 import EmergencyPage from './pages/EmergencyPage';
 import ProfilePage from './pages/ProfilePage';
 import TrackerPage from './pages/TrackerPage';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import './index.css';
 
 function App() {
   return (
-    <Router>
-      <div className="app-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Navbar />
-        <main style={{ flex: 1 }}>
-          <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/options" element={<OptionsPage />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/assessment" element={<PainAssessmentPage />} />
-            <Route path="/chatbot" element={<ChatBotPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/body-mapping" element={<BodyMappingPage />} />
-            <Route path="/suggestion" element={<SuggestionPage />} />
-            <Route path="/emergency" element={<EmergencyPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/trackers" element={<TrackerPage />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="app-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <Navbar />
+          <main style={{ flex: 1 }}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+              {/* Protected Routes */}
+              <Route path="/options" element={
+                <ProtectedRoute><OptionsPage /></ProtectedRoute>
+              } />
+              <Route path="/home" element={
+                <ProtectedRoute><Home /></ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute><DashboardPage /></ProtectedRoute>
+              } />
+              <Route path="/assessment" element={
+                <ProtectedRoute><PainAssessmentPage /></ProtectedRoute>
+              } />
+              <Route path="/chatbot" element={
+                <ProtectedRoute><ChatBotPage /></ProtectedRoute>
+              } />
+              <Route path="/body-mapping" element={
+                <ProtectedRoute><BodyMappingPage /></ProtectedRoute>
+              } />
+              <Route path="/suggestion" element={
+                <ProtectedRoute><SuggestionPage /></ProtectedRoute>
+              } />
+              <Route path="/emergency" element={
+                <ProtectedRoute><EmergencyPage /></ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute><ProfilePage /></ProtectedRoute>
+              } />
+              <Route path="/trackers" element={
+                <ProtectedRoute><TrackerPage /></ProtectedRoute>
+              } />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
 export default App;
+

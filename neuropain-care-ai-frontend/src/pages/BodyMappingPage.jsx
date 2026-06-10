@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { submitPainAssessment } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const BodyMappingPage = () => {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [selectedPart, setSelectedPart] = useState(null);
   const [showQuestions, setShowQuestions] = useState(false);
   const [rotation, setRotation] = useState(0); 
@@ -74,6 +76,26 @@ const [details, setDetails] = useState('');
     const carePlan = await submitPainAssessment(assessmentData);
 
     console.log("AI Response:", carePlan);
+
+    // Save to local assessments history
+    if (currentUser) {
+      const historyKey = `assessments_${currentUser.email}`;
+      const existing = localStorage.getItem(historyKey);
+      const history = existing ? JSON.parse(existing) : [];
+      const newAssessment = {
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        timestamp: new Date().getTime(),
+        bodyPart: selectedPart?.name,
+        painLevel: Number(painLevel),
+        sensation,
+        timing,
+        details,
+        type: 'Body Mapping',
+        status: 'Completed'
+      };
+      history.unshift(newAssessment);
+      localStorage.setItem(historyKey, JSON.stringify(history));
+    }
 
     navigate('/suggestion', {
       state: { carePlan }

@@ -1,222 +1,224 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { sendChatMessage } from '../services/api';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 
 const ChatBotPage = () => {
-  const [messages, setMessages] = useState([
-    { role: 'ai', text: 'Hello John! I am your NeuroPain Assistant. How are you feeling today?' }
-  ]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    const userMessage = input.trim();
-    
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
-    setInput('');
-    setLoading(true);
-    
-    try {
-      const response = await sendChatMessage(userMessage);
-      setMessages(prev => [...prev, { role: 'ai', text: response.response }]);
-    } catch (error) {
-      console.error(error);
-      setMessages(prev => [...prev, { 
-        role: 'ai', 
-        text: "I'm sorry, I couldn't connect to the AI assistant. Please make sure the Java backend is running." 
-      }]);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    // 1. Create and inject Botpress main script
+    const injectScript = document.createElement('script');
+    injectScript.src = "https://cdn.botpress.cloud/webchat/v3.6/inject.js";
+    injectScript.async = true;
+    document.body.appendChild(injectScript);
+
+    let configScript = null;
+
+    injectScript.onload = () => {
+      // 2. Create and inject Botpress configuration script
+      configScript = document.createElement('script');
+      configScript.src = "https://files.bpcontent.cloud/2026/06/02/08/20260602084010-F7QIZORA.js";
+      configScript.async = true;
+      document.body.appendChild(configScript);
+
+      configScript.onload = () => {
+        // Poll for window.botpress instance to be initialized
+        const checkInit = setInterval(() => {
+          if (window.botpress && typeof window.botpress.open === 'function') {
+            clearInterval(checkInit);
+            setInitialized(true);
+            
+            // Automatically open the chatbot widget once it initializes
+            window.botpress.open();
+          }
+        }, 100);
+        
+        // Timeout safeguard to stop checking after 6 seconds
+        setTimeout(() => clearInterval(checkInit), 6000);
+      };
+    };
+
+    // Clean up script tags and DOM elements when navigating away
+    return () => {
+      if (injectScript && injectScript.parentNode) {
+        injectScript.parentNode.removeChild(injectScript);
+      }
+      if (configScript && configScript.parentNode) {
+        configScript.parentNode.removeChild(configScript);
+      }
+
+      // Instruct Botpress to close the chat overlay
+      if (window.botpress && typeof window.botpress.close === 'function') {
+        window.botpress.close();
+      }
+
+      // Query and purge all DOM elements injected by Botpress to prevent overlaps on other pages
+      const elements = [
+        ...document.querySelectorAll('iframe[src*="botpress.cloud"]'),
+        ...document.querySelectorAll('iframe[src*="bpcontent.cloud"]'),
+        ...document.querySelectorAll('[id^="bp-"]'),
+        ...document.querySelectorAll('[class^="bp-"]'),
+        ...document.querySelectorAll('#bp-web-widget-container'),
+        ...document.querySelectorAll('.bp-web-widget-container'),
+        ...document.querySelectorAll('div[id*="botpress"]'),
+        ...document.querySelectorAll('div[class*="botpress"]')
+      ];
+      elements.forEach(el => {
+        if (el && el.parentNode) {
+          el.parentNode.removeChild(el);
+        }
+      });
+
+      // Remove window references
+      delete window.botpress;
+      delete window.botpressWebChat;
+    };
+  }, []);
+
+  const handleOpenChat = () => {
+    if (window.botpress && typeof window.botpress.open === 'function') {
+      window.botpress.open();
     }
   };
 
+  const handleAskQuestion = (question) => {
+    if (window.botpress && typeof window.botpress.open === 'function') {
+      // 1. Focus/Open Webchat panel
+      window.botpress.open();
+      
+      // 2. Proactively send text to bot on user's behalf
+      setTimeout(() => {
+        if (typeof window.botpress.sendMessage === 'function') {
+          window.botpress.sendMessage(question);
+        }
+      }, 350);
+    } else {
+      alert("AI Assistant is still initializing. Please wait a moment.");
+    }
+  };
+
+  const suggestCategories = [
+    {
+      title: "App Guidance",
+      icon: "📱",
+      questions: [
+        "How do I track my sleep?",
+        "How does the 3D body mapping work?",
+        "Where is the emergency assistance page?"
+      ]
+    },
+    {
+      title: "Symptom Info",
+      icon: "⚡",
+      questions: [
+        "What is neuropathic pain?",
+        "Why do my hands and feet tingle?",
+        "What triggers a pain flare-up?"
+      ]
+    },
+    {
+      title: "Immediate Relief",
+      icon: "🧘",
+      questions: [
+        "What are nerve gliding exercises?",
+        "Should I use heat or cold for neuropathy?",
+        "How can I manage a sudden flare-up?"
+      ]
+    },
+    {
+      title: "Wellness Tips",
+      icon: "🥗",
+      questions: [
+        "What anti-inflammatory foods help?",
+        "How does water intake reduce nerve pain?",
+        "What is a good bedtime routine for pain?"
+      ]
+    }
+  ];
+
   return (
-    <div style={styles.container}>
-      {/* Sidebar */}
-      <div style={styles.sidebar}>
-        <h3 style={styles.sidebarTitle}>Recent Chats</h3>
-        <div style={styles.chatHistory}>
-          {['Pain flare-up help', 'Morning stiffness', 'Medication query'].map((chat, i) => (
-            <div key={i} style={styles.historyItem}>{chat}</div>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Chat Area */}
-      <div style={styles.chatMain}>
-        <div style={styles.chatHeader}>
-          <div style={styles.aiStatus}>
-            <div style={styles.statusDot}></div>
-            <span>NeuroPain AI Assistant</span>
+    <div className="chat-container">
+      <div className="chat-layout">
+        {/* Left Column: Hero & Info */}
+        <motion.div 
+          initial={{ opacity: 0, x: -35 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="chat-hero-column"
+        >
+          <div className="chat-badge">
+            <span className="chat-status-dot"></span>
+            <span>{initialized ? "AI Assistant Online" : "Connecting..."}</span>
           </div>
-        </div>
+          <h1 className="chat-title">NeuroPain AI<br/><span className="chat-highlight">Assistant</span></h1>
+          <p className="chat-subtitle">
+            Welcome to the AI Chat! I am ready to help you with self-care suggestions, symptom guidance, and instructions on how to use all the features of this app.
+          </p>
+          
+          <div className="chat-features-list">
+            <div className="chat-feature-item">
+              <span className="chat-feature-icon">💬</span>
+              <div>
+                <h4 className="chat-feature-title">Interactive Q&A</h4>
+                <p className="chat-feature-desc">Learn about different nerve sensations and get clinical lifestyle advice.</p>
+              </div>
+            </div>
+            <div className="chat-feature-item">
+              <span className="chat-feature-icon">🛡️</span>
+              <div>
+                <h4 className="chat-feature-title">Safety-First Triage</h4>
+                <p className="chat-feature-desc">Identifies emergency symptoms and helps locate nearest emergency centers.</p>
+              </div>
+            </div>
+            <div className="chat-feature-item">
+              <span className="chat-feature-icon">🧭</span>
+              <div>
+                <h4 className="chat-feature-title">App Companion</h4>
+                <p className="chat-feature-desc">Get walk-through instructions for our 3D Body Mapping and health trackers.</p>
+              </div>
+            </div>
+          </div>
 
-        <div style={styles.messageArea}>
-          <AnimatePresence>
-            {messages.map((msg, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                style={{
-                  ...styles.message,
-                  alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  background: msg.role === 'user' ? '#38bdf8' : 'rgba(255, 255, 255, 0.05)',
-                  color: msg.role === 'user' ? '#0f172a' : '#f8fafc'
-                }}
-              >
-                {msg.text}
-              </motion.div>
-            ))}
-            {loading && (
-              <motion.div 
-                key="thinking"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                style={{
-                  ...styles.message,
-                  alignSelf: 'flex-start',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  color: '#94a3b8',
-                  fontStyle: 'italic'
-                }}
-              >
-                Assistant is thinking...
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div style={styles.inputArea}>
-          <input 
-            type="text" 
-            placeholder={loading ? "Assistant is thinking..." : "Type your symptoms or questions..."}
-            style={styles.input}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            disabled={loading}
-          />
-          <button 
-            onClick={handleSend} 
-            style={{
-              ...styles.sendBtn,
-              opacity: loading ? 0.7 : 1,
-              pointerEvents: loading ? 'none' : 'auto'
-            }}
-            disabled={loading}
-          >
-            {loading ? '...' : 'Send'}
+          <button onClick={handleOpenChat} className="chat-main-btn">
+            {initialized ? "Open Chat Box" : "Initializing AI..."}
           </button>
-        </div>
+        </motion.div>
+
+        {/* Right Column: Pre-configured suggested questions */}
+        <motion.div 
+          initial={{ opacity: 0, x: 35 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="chat-prompts-column"
+        >
+          <h3 className="chat-section-title">Suggested Inquiries</h3>
+          <p className="chat-section-subtitle">Click any question card below to automatically open the chat widget and query the AI.</p>
+          
+          <div className="chat-grid">
+            {suggestCategories.map((category, index) => (
+              <div key={index} className="chat-card">
+                <div className="chat-card-header">
+                  <span className="chat-card-icon">{category.icon}</span>
+                  <h4 className="chat-card-title">{category.title}</h4>
+                </div>
+                <div className="chat-question-list">
+                  {category.questions.map((q, qIndex) => (
+                    <button 
+                      key={qIndex} 
+                      onClick={() => handleAskQuestion(q)}
+                      className="chat-question-btn"
+                    >
+                      <span>{q}</span>
+                      <span>&rarr;</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    display: 'flex',
-    height: 'calc(100vh - 70px)',
-    background: '#0f172a',
-    color: '#f8fafc'
-  },
-  sidebar: {
-    width: '280px',
-    background: 'rgba(255, 255, 255, 0.02)',
-    borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-    padding: '2rem',
-    '@media (max-width: 768px)': {
-      display: 'none'
-    }
-  },
-  sidebarTitle: {
-    fontSize: '0.9rem',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    marginBottom: '1.5rem'
-  },
-  chatHistory: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem'
-  },
-  historyItem: {
-    padding: '0.8rem 1rem',
-    borderRadius: '10px',
-    background: 'rgba(255, 255, 255, 0.03)',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    '&:hover': {
-      background: 'rgba(255, 255, 255, 0.08)'
-    }
-  },
-  chatMain: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    position: 'relative'
-  },
-  chatHeader: {
-    padding: '1.5rem 2rem',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  aiStatus: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.8rem',
-    fontWeight: 'bold'
-  },
-  statusDot: {
-    width: '10px',
-    height: '10px',
-    background: '#34d399',
-    borderRadius: '50%',
-    boxShadow: '0 0 10px #34d399'
-  },
-  messageArea: {
-    flex: 1,
-    padding: '2rem',
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.5rem'
-  },
-  message: {
-    maxWidth: '70%',
-    padding: '1rem 1.5rem',
-    borderRadius: '18px',
-    fontSize: '1rem',
-    lineHeight: '1.5'
-  },
-  inputArea: {
-    padding: '2rem',
-    display: 'flex',
-    gap: '1rem'
-  },
-  input: {
-    flex: 1,
-    background: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '12px',
-    padding: '1rem 1.5rem',
-    color: '#f8fafc',
-    outline: 'none'
-  },
-  sendBtn: {
-    padding: '0 2rem',
-    background: '#38bdf8',
-    color: '#0f172a',
-    border: 'none',
-    borderRadius: '12px',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  }
 };
 
 export default ChatBotPage;

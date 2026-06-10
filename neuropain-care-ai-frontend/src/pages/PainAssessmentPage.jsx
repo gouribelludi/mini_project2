@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { submitPainAssessment } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const PainAssessmentPage = () => {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedPart, setSelectedPart] = useState('');
   const [painLevel, setPainLevel] = useState(5);
@@ -39,6 +41,27 @@ const PainAssessmentPage = () => {
         details
       };
       const response = await submitPainAssessment(assessmentData);
+      
+      // Save to local assessments history
+      if (currentUser) {
+        const historyKey = `assessments_${currentUser.email}`;
+        const existing = localStorage.getItem(historyKey);
+        const history = existing ? JSON.parse(existing) : [];
+        const newAssessment = {
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          timestamp: new Date().getTime(),
+          bodyPart: selectedPart,
+          painLevel: parseInt(painLevel),
+          sensation,
+          timing,
+          details,
+          type: 'Text Assessment',
+          status: 'Completed'
+        };
+        history.unshift(newAssessment);
+        localStorage.setItem(historyKey, JSON.stringify(history));
+      }
+
       navigate('/suggestion', { state: { carePlan: response } });
     } catch (error) {
       console.error(error);
@@ -48,6 +71,7 @@ const PainAssessmentPage = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div style={styles.container}>

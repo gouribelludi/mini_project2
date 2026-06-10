@@ -1,8 +1,17 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import logoImg from '../../assets/images/Neuro Paincare AI Logo with Shield Design.png';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <nav style={styles.nav}>
       <motion.div 
@@ -10,19 +19,27 @@ const Navbar = () => {
         animate={{ opacity: 1, x: 0 }}
         style={styles.logoContainer}
       >
-        <Link to="/" style={styles.logoLink}>
+        <Link to={user ? "/options" : "/login"} style={styles.logoLink}>
           <img src={logoImg} alt="NeuroPain Care AI Logo" style={styles.logoImage} />
           <span style={styles.logoText}>NeuroPain Care AI</span>
         </Link>
       </motion.div>
       <ul style={styles.navLinks}>
-        <motion.li whileHover={{ scale: 1.1 }}><Link to="/" style={styles.link}>Home</Link></motion.li>
-        <motion.li whileHover={{ scale: 1.1 }}><Link to="/dashboard" style={styles.link}>Dashboard</Link></motion.li>
-        <motion.li whileHover={{ scale: 1.1 }}><Link to="/assessment" style={styles.link}>Assessment</Link></motion.li>
-        <motion.li whileHover={{ scale: 1.1 }}><Link to="/chatbot" style={styles.link}>AI Chat</Link></motion.li>
-        <motion.li whileHover={{ scale: 1.1 }}><Link to="/trackers" style={styles.link}>Trackers</Link></motion.li>
-        <motion.li whileHover={{ scale: 1.1 }}><Link to="/profile" style={styles.link}>Profile</Link></motion.li>
-        <motion.li whileHover={{ scale: 1.1 }}><Link to="/login" style={styles.link}>Login</Link></motion.li>
+        {user ? (
+          <>
+            <motion.li whileHover={{ scale: 1.1 }}><Link to="/home" style={styles.link}>Home</Link></motion.li>
+            <motion.li whileHover={{ scale: 1.1 }}><Link to="/dashboard" style={styles.link}>Dashboard</Link></motion.li>
+            <motion.li whileHover={{ scale: 1.1 }}><Link to="/assessment" style={styles.link}>Assessment</Link></motion.li>
+            <motion.li whileHover={{ scale: 1.1 }}><Link to="/chatbot" style={styles.link}>AI Chat</Link></motion.li>
+            <motion.li whileHover={{ scale: 1.1 }}><Link to="/trackers" style={styles.link}>Trackers</Link></motion.li>
+            <motion.li whileHover={{ scale: 1.1 }}><Link to="/profile" style={styles.link}>Profile</Link></motion.li>
+            <motion.li whileHover={{ scale: 1.1 }}>
+              <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
+            </motion.li>
+          </>
+        ) : (
+          <motion.li whileHover={{ scale: 1.1 }}><Link to="/login" style={styles.link}>Login</Link></motion.li>
+        )}
         <motion.li whileHover={{ scale: 1.1 }}>
           <Link to="/emergency" style={{ ...styles.link, color: '#f87171', fontWeight: 'bold' }}>Emergency</Link>
         </motion.li>
@@ -77,7 +94,19 @@ const styles = {
     textDecoration: 'none',
     fontSize: '0.95rem',
     transition: 'color 0.3s'
+  },
+  logoutBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#f8fafc',
+    textDecoration: 'none',
+    fontSize: '0.95rem',
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+    transition: 'color 0.3s',
+    padding: 0
   }
 };
 
 export default Navbar;
+
